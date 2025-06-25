@@ -38,28 +38,74 @@ export default function Home() {
           if (parsed.action) {
             switch (parsed.action) {
               case "open_website":
-                if (typeof parsed.url === "string") {
-                  window.open(parsed.url, "_blank");
-                  speakText("Opening website...");
-                } else {
-                  speakText("I couldn't find a valid URL.");
-                }
+                window.open(parsed.url, "_blank");
+                speakText("Opening website.");
                 break;
 
               case "search_google":
-                const query = parsed?.search_query;
-                if (query) {
-                  window.open(
-                    `https://www.google.com/search?q=${encodeURIComponent(
-                      query
-                    )}`,
-                    "_blank"
-                  );
-                  speakText(`Searching Google for ${query}`);
-                }
+                window.open(
+                  `https://www.google.com/search?q=${encodeURIComponent(
+                    parsed.search_query
+                  )}`,
+                  "_blank"
+                );
+                speakText(`🔍 Searching Google for ${parsed.search_query}`);
+                break;
+
+              case "search_youtube":
+                console.log("Searching YouTube:", parsed.search_query);
+                window.open(
+                  `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                    parsed.search_query
+                  )}`,
+                  "_blank"
+                );
+                speakText(`🎬 Searching YouTube for ${parsed.search_query}`);
+                break;
+
+              case "set_timer":
+                speakText(`⏲️ Timer set for ${parsed.duration}`);
+                break;
+
+              case "set_reminder":
+                speakText(
+                  `📝 Reminder set for ${parsed.time}: ${parsed.message}`
+                );
+                break;
+
+              case "get_time":
+                speakText(
+                  `🕒 The current time is ${new Date().toLocaleTimeString()}`
+                );
+                break;
+
+              case "add_event":
+                speakText(
+                  `📅 Added event "${parsed.title}" at ${parsed.datetime}`
+                );
+                break;
+              case "get_weather":
+                speakText(`Fetching weather for ${parsed.location}`);
+                break;
+
+              case "get_news":
+                speakText(`Getting news about ${parsed.topic}`);
+                break;
+
+              case "get_stock":
+                speakText(`Checking stock price for ${parsed.symbol}`);
+                break;
+
+              case "change_theme":
+                speakText(`Changing theme to ${parsed.mode}`);
+                break;
+
+              case "reload_page":
+                speakText("Reloading page.");
+                location.reload();
                 break;
               default:
-                speakText("I received a command I don't recognize.");
+                speakText("I got a command I don't recognize.");
             }
           } else {
             speakText(reply);
