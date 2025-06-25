@@ -14,30 +14,65 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    if (transcript) {
-      const userMessage = { role: "user", parts: [{ text: transcript }] };
+    if (!transcript) return;
 
-      const updatedMessages = [...messages, userMessage];
+    const userMessage = { role: "user", parts: [{ text: transcript }] };
+    const updatedMessages = [...messages, userMessage];
 
-      setMessages(updatedMessages);
+    setMessages(updatedMessages);
 
-      fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          const reply = data.response;
-          const modelMessage = { role: "model", parts: [{ text: reply }] };
-          setMessages((prev) => [...prev, modelMessage]);
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: updatedMessages }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const reply = data.response;
+        const modelMessage = { role: "model", parts: [{ text: reply }] };
+        setMessages((prev) => [...prev, modelMessage]);
+
+        try {
+          const parsed = JSON.parse(reply.trim());
+
+          if (parsed.action) {
+            switch (parsed.action) {
+              case "open_website":
+                if (typeof parsed.url === "string") {
+                  window.open(parsed.url, "_blank");
+                  speakText("Opening website...");
+                } else {
+                  speakText("I couldn't find a valid URL.");
+                }
+                break;
+
+              case "search_google":
+                const query = parsed?.search_query;
+                if (query) {
+                  window.open(
+                    `https://www.google.com/search?q=${encodeURIComponent(
+                      query
+                    )}`,
+                    "_blank"
+                  );
+                  speakText(`Searching Google for ${query}`);
+                }
+                break;
+              default:
+                speakText("I received a command I don't recognize.");
+            }
+          } else {
+            speakText(reply);
+          }
+        } catch {
           speakText(reply);
-        })
-        .catch((err) => {
-          console.error("Error from API:", err);
-          speakText("Sorry, I couldn't understand that.");
-        });
-    }
+        }
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        speakText("Sorry, I had trouble processing that.");
+      });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript]);
 
