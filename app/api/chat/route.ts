@@ -24,9 +24,25 @@ export async function POST(req: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const SYSTEM_PROMPT = {
+      role: "user",
+      parts: [
+        {
+            text: `
+      You are NovaMate, a helpful and polite AI voice assistant. 
+      - Always respond respectfully and concisely.
+      - Limit your response to approximately 40-50 words unless explicitly asked for more.
+      - Do not answer questions about illegal topics.
+      - Avoid making assumptions or hallucinating facts.
+      - Do not respond as if you are a human.
 
+      Stay professional and useful at all times.
+            `.trim(),
+          },
+        ],
+      };
     const chat = model.startChat({
-      history: messages.slice(0, -1),
+        history: [SYSTEM_PROMPT, ...messages.slice(0, -1)],
     });
 
     const latestMessage = messages[messages.length - 1];
